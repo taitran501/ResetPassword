@@ -60,9 +60,9 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // Lấy các tham số từ URL
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const username = hashParams.get('username');
+      const hashParams = new URLSearchParams(window.location.hash.substring(1) || window.location.search.substring(1)); // Lấy toàn bộ hash hoặc search (query string) từ URL
+      const accessToken = hashParams.get('access_token'); // Lấy giá trị của tham số 'access_token
+      const username = hashParams.get('username');    // Lấy giá trị của tham số 'username'
 
       console.log('URL hash:', window.location.hash); // Log toàn bộ hash
       console.log('Extracted access_token:', accessToken);
@@ -90,7 +90,7 @@
 
         try {
           const response = await fetch(`https://wdqbztkgselheodomnse.supabase.co/rest/v1/User?username=eq.${username}`, {
-            method: 'PATCH',
+            method: 'PATCH',  
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${accessToken}`,
