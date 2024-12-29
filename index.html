@@ -58,22 +58,28 @@
   </form>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Lấy các tham số từ URL
-      const hashParams = new URLSearchParams(window.location.hash.substring(1) || window.location.search.substring(1)); // Lấy toàn bộ hash hoặc search (query string) từ URL
-      const accessToken = hashParams.get('access_token'); // Lấy giá trị của tham số 'access_token
-      const username = hashParams.get('username');    // Lấy giá trị của tham số 'username'
+  document.addEventListener('DOMContentLoaded', () => {
+    // Ưu tiên đọc tham số từ hash (#)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    // Kiểm tra cả query string nếu hash không có
+    if (!hashParams.has('username')) {
+      const searchParams = new URLSearchParams(window.location.search.substring(1));
+      hashParams.append('username', searchParams.get('username'));
+    }
 
-      console.log('URL hash:', window.location.hash); // Log toàn bộ hash
-      console.log('Extracted access_token:', accessToken);
-      console.log('Extracted username:', username);
+    const username = hashParams.get('username');
+    const accessToken = hashParams.get('access_token');
 
-      // Kiểm tra token và username
-      if (!accessToken || !username) {
-        alert(`Không tìm thấy access_token hoặc username! URL hiện tại: ${window.location.href}`);
-        console.error('URL hiện tại:', window.location.href);
-        return;
-      }
+    if (!accessToken || !username) {
+      alert('Không tìm thấy access_token hoặc username!');
+      console.error('URL hiện tại:', window.location.href);
+      return;
+    }
+
+    console.log('Extracted username:', username);
+    console.log('Extracted access_token:', accessToken);
+  });
 
       // Xử lý sự kiện submit form
       document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
@@ -99,6 +105,8 @@
             body: JSON.stringify({ password })
           });
 
+          console.log('Extracted username:', username);
+
           if (response.ok) {
             alert('Cập nhật mật khẩu thành công!');
             console.log('Password updated successfully');
@@ -112,7 +120,6 @@
           alert('Đã xảy ra lỗi trong quá trình cập nhật mật khẩu!');
         }
       });
-    });
   </script>
 </body>
 </html>
