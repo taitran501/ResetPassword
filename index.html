@@ -58,68 +58,58 @@
   </form>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Ưu tiên đọc tham số từ hash (#)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    // Kiểm tra cả query string nếu hash không có
-    if (!hashParams.has('username')) {
-      const searchParams = new URLSearchParams(window.location.search.substring(1));
-      hashParams.append('username', searchParams.get('username'));
-    }
-
-    const username = hashParams.get('username');
-    const accessToken = hashParams.get('access_token');
-
-    if (!accessToken || !username) {
-      alert('Không tìm thấy access_token hoặc username!');
-      console.error('URL hiện tại:', window.location.href);
-      return;
-    }
-
-    console.log('Extracted username:', username);
-    console.log('Extracted access_token:', accessToken);
-  });
-
+    document.addEventListener('DOMContentLoaded', () => {
+      // Lấy các tham số từ URL
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const username = hashParams.get('username');
+  
+      console.log('Extracted access_token:', accessToken);
+      console.log('Extracted username:', username);
+  
+      if (!accessToken || !username) {
+        alert('Không tìm thấy access_token hoặc username trong URL!');
+        return;
+      }
+  
       // Xử lý sự kiện submit form
       document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-
+  
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
-
-        // Kiểm tra mật khẩu có khớp không
+  
         if (password !== confirmPassword) {
           alert('Mật khẩu không khớp! Vui lòng thử lại.');
           return;
         }
-
+  
         try {
+          // Gửi yêu cầu cập nhật mật khẩu tới Supabase
           const response = await fetch(`https://wdqbztkgselheodomnse.supabase.co/rest/v1/User?username=eq.${username}`, {
-            method: 'PATCH',  
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkcWJ6dGtnc2VsaGVvZG9tbnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA4OTM5MzUsImV4cCI6MjA0NjQ2OTkzNX0.L6lu74ufICA5kvwl3UhHSRejwOzRumunQa2oakltS7c}`,
+              'Authorization': `Bearer ${accessToken}`,
               'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkcWJ6dGtnc2VsaGVvZG9tbnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA4OTM5MzUsImV4cCI6MjA0NjQ2OTkzNX0.L6lu74ufICA5kvwl3UhHSRejwOzRumunQa2oakltS7c'
             },
             body: JSON.stringify({ password })
           });
-
-          console.log('Extracted username:', username);
-
+  
           if (response.ok) {
             alert('Cập nhật mật khẩu thành công!');
-            console.log('Password updated successfully');
           } else {
-            const errorData = await response.json();
-            console.error('Lỗi khi cập nhật mật khẩu:', errorData);
-            alert(`Có lỗi xảy ra: ${errorData.message || 'Không rõ nguyên nhân'}`);
+            const error = await response.json();
+            console.error('Lỗi khi cập nhật mật khẩu:', error);
+            alert('Có lỗi xảy ra khi cập nhật mật khẩu.');
           }
-        } catch (error) {
-          console.error('Lỗi không mong muốn:', error);
-          alert('Đã xảy ra lỗi trong quá trình cập nhật mật khẩu!');
+        } catch (err) {
+          console.error('Lỗi không mong muốn:', err);
+          alert('Đã xảy ra lỗi.');
         }
       });
+    });
   </script>
+  
 </body>
 </html>
