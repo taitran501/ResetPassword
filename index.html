@@ -58,57 +58,81 @@
   </form>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Lấy các tham số từ URL
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const username = hashParams.get('username');
-  
-      console.log('Extracted access_token:', accessToken);
-      console.log('Extracted username:', username);
-  
-      if (!accessToken || !username) {
-        alert('Không tìm thấy access_token hoặc username trong URL!');
+document.addEventListener('DOMContentLoaded', () => {
+  // Lấy access_token từ URL
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const accessToken = hashParams.get('access_token');
+
+  console.log('Extracted access_token:', accessToken);
+
+  if (!accessToken) {
+    alert('Không tìm thấy access_token trong URL!');
+    return;
+  }
+
+  // Giải mã JWT để lấy thông tin email
+  const decodeJwt = (token) => {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  };
+
+  try {
+    const decodedToken = decodeJwt(accessToken);
+    const username = decodedToken.email; // Lấy email từ token
+    console.log('Extracted username:', username);
+
+    if (!username) {
+      alert('Không tìm thấy username trong access_token!');
+      return;
+    }
+
+    // Xử lý sự kiện submit form
+    document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (password !== confirmPassword) {
+        alert('Mật khẩu không khớp! Vui lòng thử lại.');
         return;
       }
-  
-      // Xử lý sự kiện submit form
-      document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-  
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-  
-        if (password !== confirmPassword) {
-          alert('Mật khẩu không khớp! Vui lòng thử lại.');
-          return;
+
+      try {
+        const response = await fetch(`https://wdqbztkgselheodomnse.supabase.co/rest/v1/User?username=eq.${username}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': 'your-supabase-api-key'
+          },
+          body: JSON.stringify({ password })
+        });
+
+        if (response.ok) {
+          alert('Cập nhật mật khẩu thành công!');
+        } else {
+          const error = await response.json();
+          console.error('Lỗi khi cập nhật mật khẩu:', error);
+          alert('Có lỗi xảy ra khi cập nhật mật khẩu.');
         }
-  
-        try {
-          // Gửi yêu cầu cập nhật mật khẩu tới Supabase
-          const response = await fetch(`https://wdqbztkgselheodomnse.supabase.co/rest/v1/User?username=eq.${username}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkcWJ6dGtnc2VsaGVvZG9tbnNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA4OTM5MzUsImV4cCI6MjA0NjQ2OTkzNX0.L6lu74ufICA5kvwl3UhHSRejwOzRumunQa2oakltS7c'
-            },
-            body: JSON.stringify({ password })
-          });
-  
-          if (response.ok) {
-            alert('Cập nhật mật khẩu thành công!');
-          } else {
-            const error = await response.json();
-            console.error('Lỗi khi cập nhật mật khẩu:', error);
-            alert('Có lỗi xảy ra khi cập nhật mật khẩu.');
-          }
-        } catch (err) {
-          console.error('Lỗi không mong muốn:', err);
-          alert('Đã xảy ra lỗi.');
-        }
-      });
+      } catch (err) {
+        console.error('Lỗi không mong muốn:', err);
+        alert('Đã xảy ra lỗi.');
+      }
     });
+  } catch (err) {
+    console.error('Lỗi giải mã access_token:', err);
+    alert('Lỗi khi giải mã access_token!');
+  }
+});
   </script>
   
 </body>
