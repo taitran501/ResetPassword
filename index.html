@@ -83,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return JSON.parse(jsonPayload);
   };
 
+  const jwtClaims = decodeJwt(accessToken);
+  console.log(decodeJwt(accessToken));
+
   try {
     const decodedToken = decodeJwt(accessToken);
     const username = decodedToken.email; // Lấy email từ token
